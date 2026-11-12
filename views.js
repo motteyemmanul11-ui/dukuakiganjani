@@ -159,5 +159,6 @@ R.zaidi=()=>{
     ["watumiaji","&#128101;","Watumiaji (PIN)","users"],["nakala","&#128190;","Nakala na Excel","backup"],["mipangilio","&#9881;&#65039;","Mipangilio","settings"],
     ["kumbukumbu","&#128221;","Kumbukumbu","settings"],["leseni","&#128273;","Leseni na Malipo","sell"]];
   return `<h2>Zaidi</h2>${installEvt?`<button class="btn big acc" style="margin-bottom:12px" data-a="installApp">&#128241; Weka app kwenye simu (Install)</button>`:""}<div class="menu">${items.filter(x=>can(x[3])).map(([v,i,t])=>`<button data-a="go" data-v="${v}"><span class="i">${i}</span>${t}</button>`).join("")}</div>
-  <p class="muted" style="margin-top:16px;text-align:center">${esc(APP.name)} toleo ${esc(APP.version)} &middot; ${esc(aina().jina)}</p>`;
+  <p class="muted" style="margin-top:16px;text-align:center">${esc(APP.name)} toleo ${esc(APP.version)} &middot; ${esc(aina().jina)}</p>
+  <div class="card devcard"><h3>Msanidi wa app</h3><div class="muted">${esc(APP.dev.name)}</div><div class="row" style="margin-top:10px"><a class="btn sm" href="tel:${esc(APP.dev.phone)}">&#128222; ${esc(APP.dev.phone)}</a><a class="btn sm sec" target="_blank" rel="noopener" href="https://wa.me/${esc(APP.whatsapp)}">WhatsApp</a><a class="btn sm sec" href="mailto:${esc(APP.dev.email)}">&#9993; Barua pepe</a></div></div>`;
 };

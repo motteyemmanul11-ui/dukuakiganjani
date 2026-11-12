@@ -5,6 +5,7 @@ const APP = {
   trialDays: 7,
   pricePerMonth: 10000,
   pay: { network: "Mixx by Yas", number: "0710106169", name: "Emmanuel Mottey" },
+  dev: { name: "Emmanuel Mottey", phone: "0710106169", email: "motteyemmanuel1@gmail.com" },
   whatsapp: "255710106169",           // namba ya WhatsApp ya kupokea Transaction ID
   publicKey: {"kty":"EC","crv":"P-256","x":"rg74_KikKy5lqgKlNvsgkPEJ0gAMmq4LI9n-g6eT-1k","y":"klgwfyYftqAaMcCce3Oq31amaCWASSOTYMi7Bw4SSCU"}            // ufunguo wa kuthibitisha leseni (usibadilishe)
 };

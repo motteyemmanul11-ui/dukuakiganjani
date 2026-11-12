@@ -160,3 +160,31 @@ textarea{border:1px solid var(--line);border-radius:10px;padding:10px;font:inher
 .receipt hr{border:0;border-top:1px dashed #999;margin:6px 0}
 .stmt tr.sec td{text-align:left!important}
 @media print{body.pm dialog{margin:0!important;width:100%!important;max-width:none!important;inset:0 auto auto 0!important;transform:none!important;border:0!important;padding:0!important}}
+
+/* ===== Muonekano wa kisasa (v1.1) ===== */
+:root{--bg:#EEF3F5;--line:#E2E9ED;--r:18px;--sh:0 1px 2px rgba(14,77,100,.06),0 6px 18px rgba(14,77,100,.07)}
+body{background:linear-gradient(180deg,#E3F1F3 0,var(--bg) 220px) fixed}
+.top{background:linear-gradient(135deg,#0E4D64,#137A8C);box-shadow:0 4px 16px rgba(14,77,100,.25);border-radius:0 0 22px 22px}
+.bell{background:rgba(255,255,255,.18)}
+.card,.kpi,.list,.tw,.menu button,.type,.users button{border:0;border-radius:var(--r);box-shadow:var(--sh)}
+.kpi{padding:14px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc)}
+.kpi.bad::before{background:var(--red)}.kpi.good::before{background:var(--ok)}
+.kpi .v{font-size:22px}
+.btn{border-radius:14px;box-shadow:0 2px 6px rgba(14,77,100,.18)}
+.btn.sec,.btn.del,.btn.ghost{box-shadow:none}
+.btn.acc{box-shadow:0 3px 10px rgba(242,165,65,.4)}
+input,select,textarea{border-radius:12px;background:#fff;border:1.5px solid var(--line)}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--p2);box-shadow:0 0 0 4px rgba(19,122,140,.15)}
+th{background:#F1F6F8;color:var(--p);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+.list .it{padding:13px 14px}
+.menu button{min-height:104px}
+.menu button .i{width:52px;height:52px;border-radius:16px;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:26px}
+nav.bot{background:rgba(255,255,255,.94);border-top:0;box-shadow:0 -4px 20px rgba(14,77,100,.1);border-radius:22px 22px 0 0}
+nav.bot button.on .i{background:var(--pl);border-radius:14px;padding:3px 14px}
+nav.bot button.on::before{display:none}
+.cartbar{border-radius:18px;background:linear-gradient(135deg,#F2A541,#F7BC63)}
+dialog{border-radius:22px;overflow:hidden}
+dialog .dh{background:linear-gradient(135deg,#0E4D64,#137A8C)}
+.devcard{text-align:center;margin-top:14px}.devcard .row{justify-content:center}
+@media print{body{background:#fff}.card,.kpi,.list,.tw{box-shadow:none}}
