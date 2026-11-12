@@ -1,5 +1,9 @@
 {
   "appId": "com.dukakiganjani.app",
   "appName": "DUKA KIGANJANI",
-  "webDir": "www"
+  "webDir": "www",
+  "server": {
+    "url": "https://motteyemmanul11-ui.github.io/dukakiganjani/",
+    "androidScheme": "https"
+  }
 }
