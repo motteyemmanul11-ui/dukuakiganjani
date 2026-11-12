@@ -1,5 +1,5 @@
 /* DUKA KIGANJANI service worker: inafanya app ifanye kazi bila intaneti */
-const CACHE = "duka-kiganjani-1-0";
+const CACHE = "duka-kiganjani-1-1";
 const FILES = ["./","./index.html","./styles.css","./config.js","./xl.js","./core.js","./license.js","./views.js","./views2.js","./actions.js",
   "./manifest.webmanifest","./icons/logo.svg","./icons/icon-192.png","./icons/icon-512.png","./icons/maskable-512.png","./icons/apple-touch-icon.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
