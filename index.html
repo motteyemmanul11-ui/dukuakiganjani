@@ -1,36 +1,23 @@
-<!doctype html>
-<html lang="sw">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>DUKA KIGANJANI</title>
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0E4D64">
-<link rel="icon" href="icons/logo.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Duka">
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<div id="root"></div>
-<div id="toast"></div>
-<dialog id="dlg"><div class="dh"><b id="dlgT"></b><button data-a="closeDlg" aria-label="Funga">&times;</button></div><div class="db" id="dlgB"></div><div class="df" id="dlgF"></div></dialog>
-<input type="file" id="fileIn" accept=".json,application/json" hidden>
-<input type="file" id="xlsIn" accept=".xlsx,.csv" hidden>
-<script src="config.js"></script>
-<script src="xl.js"></script>
-<script src="core.js"></script>
-<script src="license.js"></script>
-<script src="views.js"></script>
-<script src="views2.js"></script>
-<script src="actions.js"></script>
 <script>
+function showUpdate(){
+  if(document.getElementById("updBar"))return;
+  const b=document.createElement("div");b.id="updBar";
+  b.style.cssText="position:fixed;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));z-index:9999;background:#F2A541;color:#3a2500;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;font:700 14px system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25)";
+  b.innerHTML='<span style="flex:1">Toleo jipya la app limepatikana.</span><button id="updGo" style="border:0;background:#0E4D64;color:#fff;border-radius:10px;padding:9px 14px;font-weight:700">Sasisha</button><button id="updX" aria-label="Funga" style="border:0;background:transparent;font-size:22px;color:#3a2500">&times;</button>';
+  document.body.appendChild(b);
+  document.getElementById("updGo").onclick=()=>location.reload();
+  document.getElementById("updX").onclick=()=>b.remove();
+}
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+  window.addEventListener("load",()=>{
+    const hadSW=!!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register("sw.js").then(reg=>{
+      const chk=()=>reg.update().catch(()=>{});
+      document.addEventListener("visibilitychange",()=>{if(!document.hidden)chk()});
+      setInterval(chk,30*60*1000);
+    }).catch(()=>{});
+    navigator.serviceWorker.addEventListener("controllerchange",()=>{if(hadSW)showUpdate()});
+  });
 }
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 </script>
-</body>
-</html>
