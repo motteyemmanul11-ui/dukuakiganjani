@@ -1,0 +1,22 @@
+DUKA KIGANJANI - toleo 1.0
+==========================
+
+JINSI YA KUIWEKA MTANDAONI (ili wateja waisakinishe kwenye simu)
+1. Fungua https://app.netlify.com/drop kwenye kompyuta.
+2. Buruta FOLDA HII NZIMA (DUKA_KIGANJANI_app) kwenye ukurasa huo.
+3. Utapata link (mf. https://jina-lako.netlify.app). Badilisha jina kwenye
+   Site settings > Change site name (mf. dukakiganjani).
+4. Mteja anafungua link hiyo kwenye Chrome ya simu > Zaidi > "Weka app kwenye simu"
+   (au menyu ya Chrome > Add to Home screen / Install app).
+5. Baada ya kufunguliwa mara moja, app inafanya kazi BILA intaneti.
+
+KUBADILISHA JINA, BEI AU NAMBA YA MALIPO
+- Fungua config.js kwa Notepad: name, pricePerMonth, pay, whatsapp.
+- Usibadilishe publicKey.
+- Ukibadilisha faili lolote, fungua sw.js na ongeza namba kwenye CACHE
+  (mf. "duka-kiganjani-1-1") ili simu za wateja zipate toleo jipya.
+
+MUHIMU
+- Taarifa za kila duka zinakaa kwenye simu yake tu. Wafundishe wateja
+  kupakua nakala (Zaidi > Nakala na Excel) kila wiki.
+- Faili la Leseni_Admin.html HALIMO humu na lisiwekwe hapa wala GitHub.
