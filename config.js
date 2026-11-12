@@ -1,7 +1,7 @@
 /* ================= MIPANGILIO YA MSAMBAZAJI (badilisha hapa tu) ================= */
 const APP = {
   name: "DUKA KIGANJANI",
-  version: "1.0 (12/11/2026)",
+  version: "1.1 (12/11/2026)",
   trialDays: 7,
   pricePerMonth: 10000,
   pay: { network: "Mixx by Yas", number: "0710106169", name: "Emmanuel Mottey" },
