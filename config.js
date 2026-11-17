@@ -1,10 +1,10 @@
 /* ================= MIPANGILIO YA MSAMBAZAJI (badilisha hapa tu) ================= */
 const APP = {
   name: "DUKA KIGANJANI",
-  version: "1.1 (12/11/2026)",
+  version: "1.2 (17/11/2026)",
   trialDays: 7,
   pricePerMonth: 10000,
-  pay: { network: "Mixx by Yas", number: "0710106169", name: "Emmanuel Mottey" },
+  pay: { network: "Mixx by Yas", number: "0710106169", name: "Emmanuel Mottey MASTER" },
   dev: { name: "Emmanuel Mottey", phone: "0710106169", email: "motteyemmanuel1@gmail.com" },
   whatsapp: "255710106169",           // namba ya WhatsApp ya kupokea Transaction ID
   publicKey: {"kty":"EC","crv":"P-256","x":"rg74_KikKy5lqgKlNvsgkPEJ0gAMmq4LI9n-g6eT-1k","y":"klgwfyYftqAaMcCce3Oq31amaCWASSOTYMi7Bw4SSCU"}            // ufunguo wa kuthibitisha leseni (usibadilishe)
