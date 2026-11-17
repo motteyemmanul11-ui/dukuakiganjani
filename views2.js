@@ -31,7 +31,7 @@ R.bidhaaForm=()=>{
   <label>Idadi ndani ya ${esc(pk.jina||a.pakitiJina)} moja<input name="pk_idadi" type="number" min="0" value="${esc(pk.idadi??"")}"></label>
   <label>Bei ya ${esc(pk.jina||a.pakitiJina)} nzima (hiari)<input name="bei_pakiti" type="number" min="0" value="${esc(x.bei_pakiti??"")}"></label>`:""}
   <label>Tahadhari stoo ikifika (kiwango cha chini)<input name="kiwango_chini" type="number" min="0" step="any" value="${esc(x.kiwango_chini??"")}"></label>
-  <label>Barcode (hiari)<input name="barcode" value="${esc(x.barcode||"")}"></label>
+  <label>Barcode (hiari)<div class="row" style="flex-wrap:nowrap"><input name="barcode" value="${esc(x.barcode||"")}" inputmode="numeric"><button type="button" class="btn sec" data-a="scanField" aria-label="Scan">&#128247;</button></div></label>
   ${feat("desimali")?`<label class="chk"><input type="checkbox" name="desimali" ${x.desimali?"checked":""}> Inauzwa kwa desimali (mf. 2.5 m)</label>`:""}
   ${feat("chupa")?`<label>Amana ya chupa (deposit) kwa chupa<input name="amana" type="number" min="0" value="${esc(x.amana??"")}"></label>`:""}
   ${feat("batch")?`<label class="chk"><input type="checkbox" name="cheti" ${x.cheti?"checked":""}> Dawa ya cheti (prescription)</label>`:""}

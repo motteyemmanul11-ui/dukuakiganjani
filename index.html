@@ -14,21 +14,26 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div id="splash" style="position:fixed;inset:0;z-index:10000;background:linear-gradient(160deg,#0E4D64,#137A8C);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-family:system-ui,sans-serif;transition:opacity .4s"><div style="font-size:12px;letter-spacing:4px;color:#F2A541;font-weight:700">DUKA</div><div style="font-size:30px;font-weight:800;letter-spacing:1px">KIGANJANI</div><div id="splashV" style="margin-top:14px;font-size:15px;opacity:.9"></div></div>
 <div id="root"></div>
 <div id="toast"></div>
 <dialog id="dlg"><div class="dh"><b id="dlgT"></b><button data-a="closeDlg" aria-label="Funga">&times;</button></div><div class="db" id="dlgB"></div><div class="df" id="dlgF"></div></dialog>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
 <input type="file" id="xlsIn" accept=".xlsx,.csv" hidden>
 <script src="config.js"></script>
+<script src="i18n.js"></script>
 <script src="xl.js"></script>
 <script src="core.js"></script>
 <script src="license.js"></script>
 <script src="views.js"></script>
 <script src="views2.js"></script>
+<script src="zxing.min.js"></script>
 <script src="actions.js"></script>
 <script>
+/* Skrini ya kwanza: onyesha toleo */
+(function(){const s=document.getElementById("splash"),v=document.getElementById("splashV");if(v&&typeof APP!=="undefined")v.textContent="Toleo "+APP.version;setTimeout(()=>{if(s){s.style.opacity=0;setTimeout(()=>s.remove(),450)}},1800)})();
 /* ===== Masasisho ya kiotomatiki: ukibadilisha "version" kwenye config.js (GitHub), simu zote zinaonyesha "Sasisha" ===== */
-const APP_FILES=["index.html","styles.css","config.js","xl.js","core.js","license.js","views.js","views2.js","actions.js"];
+const APP_FILES=["i18n.js","zxing.min.js","index.html","styles.css","config.js","xl.js","core.js","license.js","views.js","views2.js","actions.js"];
 function showUpdate(){
   if(document.getElementById("updBar"))return;
   const b=document.createElement("div");b.id="updBar";

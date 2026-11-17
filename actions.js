@@ -144,16 +144,56 @@ function showQuote(q){dlg("Proforma #"+q.no,pdfHead("Proforma #"+q.no)+receiptHT
 A.showQuote=d=>{const q=D.quotes.find(x=>x.id===d.id);if(q)showQuote(q)};
 A.quoteToSale=d=>{const q=D.quotes.find(x=>x.id===d.id);cart=newCart();cart.lines=q.items.filter(i=>prod(i.pid)).map(i=>({pid:i.pid,n:i.n,unit:i.unit,bei:i.price}));cart.punguzo=q.punguzo||0;cart.mteja=q.mteja||"";cart.quoteId=q.id;closeDlg();go("kikapu")};
 
-/* barcode scanning with camera (where supported) */
-let scanStream=null;
-A.scan=async()=>{
-  try{const det=new BarcodeDetector();scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-    dlg("Scan barcode",`<video id="scV" playsinline muted style="width:100%;border-radius:10px;background:#000"></video><p class="muted">Elekeza kamera kwenye barcode.</p>`,`<button class="btn sec" data-a="stopScan">Funga</button>`);
-    const v=$("#scV");v.srcObject=scanStream;await v.play();
-    const loop=async()=>{if(!scanStream)return;try{const r=await det.detect(v);if(r.length){const code=r[0].rawValue;A.stopScan();const p=byBarcode(code);if(p){addToCart(p);render()}else{state.q=code;render();toast("Barcode "+code+" haijasajiliwa.")}return}}catch(e){}requestAnimationFrame(loop)};loop();
-  }catch(e){toast("Kamera haipatikani: "+e.message)}
+/* barcode scanning: BarcodeDetector au ZXing (inafanya kazi kwenye APK/WebView pia) */
+let scanStream=null,scanTimer=null,scanLast="",scanLastT=0;
+function scanErr(e){const n=(e&&e.name)||"";
+  if(n==="NotAllowedError"||n==="SecurityError")return "Kamera imekataliwa. Fungua Settings ya simu > Apps > DUKA KIGANJANI > Permissions > Camera > Allow, kisha fungua app upya.";
+  if(n==="NotFoundError")return "Kamera haijapatikana kwenye kifaa hiki.";
+  return "Kamera haipatikani: "+((e&&e.message)||e)}
+function beep(){try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.frequency.value=1000;g.gain.value=.15;o.connect(g);g.connect(c.destination);o.start();setTimeout(()=>{o.stop();c.close()},110)}catch(e){}try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
+function stopScanStream(){clearTimeout(scanTimer);if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null}}
+async function openScan(mode){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return toast("Kifaa hiki hakiruhusu kamera.");
+  stopScanStream();
+  try{scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false})}catch(e){return toast(scanErr(e))}
+  const old=document.getElementById("scanDlg");if(old)old.remove();
+  const d=document.createElement("dialog");d.id="scanDlg";
+  d.innerHTML=`<div class="dh"><b>Scan barcode</b><button data-a="stopScan" aria-label="Funga">&times;</button></div><div class="db"><video id="scV" playsinline muted autoplay style="width:100%;border-radius:12px;background:#000;max-height:58vh"></video><p class="muted" id="scMsg" style="margin-top:8px">Elekeza kamera kwenye barcode.</p></div><div class="df"><button class="btn sec" data-a="stopScan">Funga</button></div>`;
+  document.body.appendChild(d);d.addEventListener("close",()=>{stopScanStream();d.remove()});d.showModal();
+  const v=$("#scV"),msg=t=>{const m=$("#scMsg");if(m)m.textContent=t};v.srcObject=scanStream;try{await v.play()}catch(e){}
+  let det=null,zx=null;
+  if("BarcodeDetector" in window){try{det=new BarcodeDetector()}catch(e){}}
+  if(!det&&window.ZXing){try{zx=new ZXing.MultiFormatReader();const h=new Map(),F=ZXing.BarcodeFormat;h.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.ITF,F.QR_CODE]);h.set(ZXing.DecodeHintType.TRY_HARDER,true);zx.setHints(h)}catch(e){zx=null}}
+  if(!det&&!zx)msg("Kifaa hiki hakiwezi kusoma barcode. Andika namba kwa mkono.");
+  const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});
+  const onCode=code=>{
+    if(code===scanLast&&Date.now()-scanLastT<2500)return;scanLast=code;scanLastT=Date.now();beep();
+    if(mode==="field"){const i=document.querySelector('#dlgB [name="barcode"]');if(i)i.value=code;toast("Barcode: "+code);closeScanDlg();return}
+    const p=byBarcode(code);
+    if(p){addToCart(p);render();msg("✔ "+p.jina+" imeongezwa. Endelea ku-scan au bonyeza Funga.")}
+    else msg("Barcode "+code+" haijasajiliwa.");
+  };
+  const loop=async()=>{if(!scanStream)return;
+    try{let code="";
+      if(v.readyState>=2&&v.videoWidth){
+        if(det){const r=await det.detect(v);if(r.length)code=r[0].rawValue}
+        else if(zx){cv.width=v.videoWidth;cv.height=v.videoHeight;cx.drawImage(v,0,0);
+          try{code=zx.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(cv)))).getText()}catch(e){}}}
+      if(code)onCode(String(code))}catch(e){}
+    scanTimer=setTimeout(loop,det?60:140)};
+  loop();
+}
+function closeScanDlg(){stopScanStream();const d=document.getElementById("scanDlg");if(d){if(d.open)d.close();else d.remove()}}
+A.scan=()=>openScan("sale");
+A.scanField=()=>openScan("field");
+A.stopScan=()=>closeScanDlg();
+
+/* kufunga app / lugha */
+A.exitApp=()=>{
+  try{const C=window.Capacitor;if(C&&C.Plugins&&C.Plugins.App&&C.Plugins.App.exitApp){C.Plugins.App.exitApp();return}}catch(e){}
+  A.lock();toast("Umefungwa. Funga kichupo/app mwenyewe.");try{window.close()}catch(e){}
 };
-A.stopScan=()=>{if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null}closeDlg()};
+A.setLang=d=>{try{localStorage.setItem("dk_lang",d.l==="en"?"en":"sw")}catch(e){}location.reload()};
 
 /* ---------------------------------------------------------------- CUSTOMERS */
 function customerForm(c){return `<div class="form" id="cuF"><label>Jina *<input name="jina" value="${esc(c.jina||"")}"></label><label>Simu<input name="simu" inputmode="tel" value="${esc(c.simu||"")}"></label>
@@ -370,7 +410,7 @@ document.addEventListener("keydown",e=>{lastAct=Date.now();
 ["pointerdown","touchstart"].forEach(ev=>document.addEventListener(ev,()=>{lastAct=Date.now()},{passive:true}));
 setInterval(()=>{if(ME&&num(D.settings.lockMinutes)>0&&Date.now()-lastAct>num(D.settings.lockMinutes)*60000){A.lock();toast("Imefungwa kwa usalama. Ingiza PIN.")}},20000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){licLoad();if(ME)render()}});
-$("#dlg").addEventListener("close",()=>{if(scanStream)A.stopScan()});
+
 
 let installEvt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;if(view==="zaidi"&&ME)render()});

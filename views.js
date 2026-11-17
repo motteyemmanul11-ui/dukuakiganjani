@@ -78,7 +78,7 @@ R.mauzo=()=>{
   const q=(state.q||"").toLowerCase(),kundi=state.kundi||"";
   const ps=D.products.filter(p=>p.active!==false&&(!kundi||p.kundi===kundi)&&(!q||(p.jina+" "+(p.barcode||"")+" "+(p.kundi||"")).toLowerCase().includes(q))).sort((a,b)=>a.jina.localeCompare(b.jina));
   const T=cartTotals(),cats=[...new Set(D.products.map(p=>p.kundi).filter(Boolean))];
-  return `<div class="search"><input id="q" placeholder="&#128269; Tafuta bidhaa au scan barcode" value="${esc(state.q||"")}" autocomplete="off">${"BarcodeDetector" in window?`<button class="btn sec" data-a="scan" aria-label="Scan">&#128247;</button>`:""}</div>
+  return `<div class="search"><input id="q" placeholder="&#128269; Tafuta bidhaa au scan barcode" value="${esc(state.q||"")}" autocomplete="off">${(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)?`<button class="btn sec" data-a="scan" aria-label="Scan">&#128247;</button>`:""}</div>
   ${cats.length>1?`<div class="tabs"><button class="${!kundi?"on":""}" data-a="kundi" data-k="">Zote</button>${cats.map(c=>`<button class="${kundi===c?"on":""}" data-a="kundi" data-k="${esc(c)}">${esc(c)}</button>`).join("")}</div>`:""}
   ${D.products.length?`<div class="list">${ps.slice(0,200).map(p=>{const s=sellable(p),inC=cart.lines.filter(l=>l.pid===p.id).length;return `<div class="it" data-a="addItem" data-id="${p.id}">
     <div style="min-width:0"><div class="nm">${esc(p.jina)} ${inC?`<span class="chip ok">&#10003;</span>`:""}</div><div class="sb">${can("viewStock")?`Stoo: <b style="color:${s<=0?"var(--red)":num(p.kiwango_chini)&&s<=num(p.kiwango_chini)?"var(--accd)":"inherit"}">${fq(s,p)}</b>`:""}${feat("batch")&&expiredQty(p)>0?` &middot; <span style="color:var(--red)">${fq(expiredQty(p))} zimeisha muda</span>`:""}</div></div>
@@ -158,7 +158,7 @@ R.zaidi=()=>{
     ...(feat("proforma")?[["proforma","&#128196;","Proforma","quote"]]:[]),...(feat("chupa")?[["chupa","&#127870;","Chupa Tupu","bottles"]]:[]),
     ["watumiaji","&#128101;","Watumiaji (PIN)","users"],["nakala","&#128190;","Nakala na Excel","backup"],["mipangilio","&#9881;&#65039;","Mipangilio","settings"],
     ["kumbukumbu","&#128221;","Kumbukumbu","settings"],["leseni","&#128273;","Leseni na Malipo","sell"]];
-  return `<h2>Zaidi</h2>${installEvt?`<button class="btn big acc" style="margin-bottom:12px" data-a="installApp">&#128241; Weka app kwenye simu (Install)</button>`:""}<div class="menu">${items.filter(x=>can(x[3])).map(([v,i,t])=>`<button data-a="go" data-v="${v}"><span class="i">${i}</span>${t}</button>`).join("")}</div>
+  return `<h2>Zaidi</h2>${installEvt?`<button class="btn big acc" style="margin-bottom:12px" data-a="installApp">&#128241; Weka app kwenye simu (Install)</button>`:""}${langCard()}<div class="menu">${items.filter(x=>can(x[3])).map(([v,i,t])=>`<button data-a="go" data-v="${v}"><span class="i">${i}</span>${t}</button>`).join("")}</div>
   <p class="muted" style="margin-top:16px;text-align:center">${esc(APP.name)} toleo ${esc(APP.version)} &middot; ${esc(aina().jina)}</p>
   <div class="card devcard"><h3>Msanidi wa app</h3><div class="muted">${esc(APP.dev.name)}</div><div class="row" style="margin-top:10px"><a class="btn sm" href="tel:${esc(APP.dev.phone)}">&#128222; ${esc(APP.dev.phone)}</a><a class="btn sm sec" target="_blank" rel="noopener" href="https://wa.me/${esc(APP.whatsapp)}">WhatsApp</a><a class="btn sm sec" href="mailto:${esc(APP.dev.email)}">&#9993; Barua pepe</a></div></div>`;
 };
