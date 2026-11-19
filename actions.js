@@ -179,7 +179,36 @@ function makeDecoder(){
     return ""};
   dec.ok=!!(det||zx);return dec;
 }
+/* Scanner ya kiotomatiki ya Google ML Kit (kwenye APK): inasoma barcode yenyewe bila kubonyeza chochote */
+function nativeBS(){try{const C=window.Capacitor;return (C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.BarcodeScanner)||null}catch(e){return null}}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function nativeScan(mode,BS){
+  try{
+    const sup=await BS.isSupported();if(sup&&sup.supported===false)return false;
+    let av=await BS.isGoogleBarcodeScannerModuleAvailable();
+    if(!av.available){
+      toast("Inapakua scanner mara ya kwanza (inahitaji intaneti)...");
+      try{await BS.installGoogleBarcodeScannerModule()}catch(e){}
+      for(let i=0;i<40&&!av.available;i++){await sleep(1500);try{av=await BS.isGoogleBarcodeScannerModuleAvailable()}catch(e){}}
+      if(!av.available){toast("Scanner haijapakuliwa. Hakikisha una intaneti na Google Play Services, kisha jaribu tena.");return true}
+    }
+  }catch(e){return false}
+  for(;;){
+    let res;
+    try{res=await BS.scan()}catch(e){const m=String((e&&e.message)||e);if(!/cancel/i.test(m))toast("Scanner: "+m);break}
+    const b=res&&res.barcodes&&res.barcodes[0];if(!b)break;
+    const code=String(b.rawValue||b.displayValue||"").trim();if(!code)break;
+    beep();
+    if(mode==="field"){const i=document.querySelector('#dlgB [name="barcode"]');if(i)i.value=code;toast("Barcode: "+code);return true}
+    const p=byBarcode(code);
+    if(p){addToCart(p);render();toast("✔ "+p.jina+" imeongezwa")}
+    else toast("Barcode "+code+" haijasajiliwa.");
+    await sleep(700);
+  }
+  return true;
+}
 async function openScan(mode){
+  const BS=nativeBS();if(BS){const done=await nativeScan(mode,BS);if(done)return}
   stopScanStream();
   const old=document.getElementById("scanDlg");if(old)old.remove();
   const d=document.createElement("dialog");d.id="scanDlg";
