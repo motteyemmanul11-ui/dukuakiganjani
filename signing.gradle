@@ -1,0 +1,10 @@
+android {
+    signingConfigs {
+        debug {
+            storeFile file("duka.keystore")
+            storePassword System.getenv("KS_PASS")
+            keyAlias "duka"
+            keyPassword System.getenv("KS_PASS")
+        }
+    }
+}
