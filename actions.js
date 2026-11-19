@@ -144,28 +144,50 @@ function showQuote(q){dlg("Proforma #"+q.no,pdfHead("Proforma #"+q.no)+receiptHT
 A.showQuote=d=>{const q=D.quotes.find(x=>x.id===d.id);if(q)showQuote(q)};
 A.quoteToSale=d=>{const q=D.quotes.find(x=>x.id===d.id);cart=newCart();cart.lines=q.items.filter(i=>prod(i.pid)).map(i=>({pid:i.pid,n:i.n,unit:i.unit,bei:i.price}));cart.punguzo=q.punguzo||0;cart.mteja=q.mteja||"";cart.quoteId=q.id;closeDlg();go("kikapu")};
 
-/* barcode scanning: BarcodeDetector au ZXing (inafanya kazi kwenye APK/WebView pia) */
+/* barcode scanning: kamera ya moja kwa moja, au picha (njia ya akiba), BarcodeDetector/ZXing */
 let scanStream=null,scanTimer=null,scanLast="",scanLastT=0;
-function scanErr(e){const n=(e&&e.name)||"";
+function scanErr(e){const n=(e&&e.name)||"",m=(e&&e.message)||"";
   if(n==="NotAllowedError"||n==="SecurityError")return "Kamera imekataliwa. Fungua Settings ya simu > Apps > DUKA KIGANJANI > Permissions > Camera > Allow, kisha fungua app upya.";
-  if(n==="NotFoundError")return "Kamera haijapatikana kwenye kifaa hiki.";
-  return "Kamera haipatikani: "+((e&&e.message)||e)}
+  if(n==="NotFoundError"||n==="OverconstrainedError")return "Kamera haijapatikana kwenye kifaa hiki. Tumia kitufe cha kupiga picha hapa chini.";
+  if(n==="NotReadableError"||/video source/i.test(m))return "Kamera haiwezi kuanza (inatumiwa na app nyingine au imekwama). Funga app zingine za kamera, kisha jaribu tena, au bonyeza kitufe cha kupiga picha ya barcode hapa chini.";
+  return "Kamera haipatikani: "+m}
 function beep(){try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.frequency.value=1000;g.gain.value=.15;o.connect(g);g.connect(c.destination);o.start();setTimeout(()=>{o.stop();c.close()},110)}catch(e){}try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}}
 function stopScanStream(){clearTimeout(scanTimer);if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null}}
-async function openScan(mode){
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return toast("Kifaa hiki hakiruhusu kamera.");
-  stopScanStream();
-  try{scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false})}catch(e){return toast(scanErr(e))}
-  const old=document.getElementById("scanDlg");if(old)old.remove();
-  const d=document.createElement("dialog");d.id="scanDlg";
-  d.innerHTML=`<div class="dh"><b>Scan barcode</b><button data-a="stopScan" aria-label="Funga">&times;</button></div><div class="db"><video id="scV" playsinline muted autoplay style="width:100%;border-radius:12px;background:#000;max-height:58vh"></video><p class="muted" id="scMsg" style="margin-top:8px">Elekeza kamera kwenye barcode.</p></div><div class="df"><button class="btn sec" data-a="stopScan">Funga</button></div>`;
-  document.body.appendChild(d);d.addEventListener("close",()=>{stopScanStream();d.remove()});d.showModal();
-  const v=$("#scV"),msg=t=>{const m=$("#scMsg");if(m)m.textContent=t};v.srcObject=scanStream;try{await v.play()}catch(e){}
+async function getCam(){
+  const tries=[{video:{facingMode:{ideal:"environment"}},audio:false},{video:{facingMode:"environment"},audio:false},{video:true,audio:false}];
+  let last;
+  for(let round=0;round<2;round++){
+    for(const c of tries){try{return await navigator.mediaDevices.getUserMedia(c)}catch(e){last=e;if(e&&(e.name==="NotAllowedError"||e.name==="SecurityError"))throw e}}
+    await new Promise(r=>setTimeout(r,600));
+  }
+  try{const ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="videoinput");
+    const back=ds.find(d=>/back|rear|environment|nyuma/i.test(d.label))||ds[ds.length-1];
+    if(back&&back.deviceId)return await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:back.deviceId}},audio:false})}catch(e){last=e}
+  throw last;
+}
+function makeDecoder(){
   let det=null,zx=null;
   if("BarcodeDetector" in window){try{det=new BarcodeDetector()}catch(e){}}
-  if(!det&&window.ZXing){try{zx=new ZXing.MultiFormatReader();const h=new Map(),F=ZXing.BarcodeFormat;h.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.ITF,F.QR_CODE]);h.set(ZXing.DecodeHintType.TRY_HARDER,true);zx.setHints(h)}catch(e){zx=null}}
-  if(!det&&!zx)msg("Kifaa hiki hakiwezi kusoma barcode. Andika namba kwa mkono.");
+  if(window.ZXing){try{zx=new ZXing.MultiFormatReader();const h=new Map(),F=ZXing.BarcodeFormat;
+    h.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128,F.CODE_39,F.ITF,F.QR_CODE]);h.set(ZXing.DecodeHintType.TRY_HARDER,true);zx.setHints(h)}catch(e){zx=null}}
   const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});
+  const dec=async src=>{
+    const w=src.videoWidth||src.naturalWidth||src.width,h=src.videoHeight||src.naturalHeight||src.height;if(!w||!h)return "";
+    if(det){try{const r=await det.detect(src);if(r.length)return r[0].rawValue}catch(e){}}
+    if(zx){const k=Math.min(1,1280/Math.max(w,h));cv.width=Math.round(w*k);cv.height=Math.round(h*k);cx.drawImage(src,0,0,cv.width,cv.height);
+      try{return zx.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(cv)))).getText()}catch(e){}}
+    return ""};
+  dec.ok=!!(det||zx);return dec;
+}
+async function openScan(mode){
+  stopScanStream();
+  const old=document.getElementById("scanDlg");if(old)old.remove();
+  const d=document.createElement("dialog");d.id="scanDlg";
+  d.innerHTML=`<div class="dh"><b>Scan barcode</b><button data-a="stopScan" aria-label="Funga">&times;</button></div><div class="db"><video id="scV" playsinline muted autoplay style="width:100%;border-radius:12px;background:#000;max-height:48vh"></video><p class="muted" id="scMsg" style="margin-top:8px">Inafungua kamera...</p>
+  <label class="btn sec" style="margin-top:6px;width:100%">&#128247; Piga picha ya barcode<input type="file" id="scFile" accept="image/*" capture="environment" hidden></label></div><div class="df"><button class="btn sec" data-a="stopScan">Funga</button></div>`;
+  document.body.appendChild(d);d.addEventListener("close",()=>{stopScanStream();d.remove()});d.showModal();
+  const v=$("#scV"),msg=t=>{const m=$("#scMsg");if(m)m.textContent=t};
+  const dec=makeDecoder();
   const onCode=code=>{
     if(code===scanLast&&Date.now()-scanLastT<2500)return;scanLast=code;scanLastT=Date.now();beep();
     if(mode==="field"){const i=document.querySelector('#dlgB [name="barcode"]');if(i)i.value=code;toast("Barcode: "+code);closeScanDlg();return}
@@ -173,14 +195,20 @@ async function openScan(mode){
     if(p){addToCart(p);render();msg("✔ "+p.jina+" imeongezwa. Endelea ku-scan au bonyeza Funga.")}
     else msg("Barcode "+code+" haijasajiliwa.");
   };
+  $("#scFile").addEventListener("change",async e=>{
+    const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;msg("Inasoma picha...");
+    try{const bmp=await createImageBitmap(f);const code=await dec(bmp);if(bmp.close)bmp.close();
+      if(code)onCode(String(code));else msg("Haikusoma barcode kwenye picha. Piga tena karibu zaidi, kwa mwanga na barcode ijae picha.")}
+    catch(err){msg("Imeshindikana kusoma picha: "+(err&&err.message||err))}
+  });
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){msg("Kamera ya moja kwa moja haipatikani. Bonyeza kitufe cha kupiga picha.");return}
+  try{scanStream=await getCam()}catch(e){msg(scanErr(e));return}
+  if(!document.getElementById("scanDlg")){stopScanStream();return}
+  v.srcObject=scanStream;try{await v.play()}catch(e){}
+  msg(dec.ok?"Elekeza kamera kwenye barcode.":"Kifaa hiki hakiwezi kusoma barcode moja kwa moja. Tumia kitufe cha kupiga picha.");
   const loop=async()=>{if(!scanStream)return;
-    try{let code="";
-      if(v.readyState>=2&&v.videoWidth){
-        if(det){const r=await det.detect(v);if(r.length)code=r[0].rawValue}
-        else if(zx){cv.width=v.videoWidth;cv.height=v.videoHeight;cx.drawImage(v,0,0);
-          try{code=zx.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(cv)))).getText()}catch(e){}}}
-      if(code)onCode(String(code))}catch(e){}
-    scanTimer=setTimeout(loop,det?60:140)};
+    try{if(dec.ok&&v.readyState>=2&&v.videoWidth){const code=await dec(v);if(code)onCode(String(code))}}catch(e){}
+    scanTimer=setTimeout(loop,150)};
   loop();
 }
 function closeScanDlg(){stopScanStream();const d=document.getElementById("scanDlg");if(d){if(d.open)d.close();else d.remove()}}
