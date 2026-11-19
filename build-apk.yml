@@ -37,7 +37,34 @@ jobs:
 
       - run: npx cap sync android
 
+      - name: Weka sahihi ya kudumu (kama ipo kwenye Secrets)
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > android/app/duka.keystore
+            cat > android/app/signing.gradle <<'EOF'
+          android {
+              signingConfigs {
+                  debug {
+                      storeFile file("duka.keystore")
+                      storePassword System.getenv("KS_PASS")
+                      keyAlias "duka"
+                      keyPassword System.getenv("KS_PASS")
+                  }
+              }
+          }
+          EOF
+            echo "apply from: 'signing.gradle'" >> android/app/build.gradle
+            echo "Sahihi ya kudumu imewekwa."
+          else
+            echo "ONYO: hakuna keystore kwenye Secrets, sahihi ya muda itatumika."
+          fi
+
       - name: Tengeneza APK
+        env:
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           cd android
           chmod +x gradlew
